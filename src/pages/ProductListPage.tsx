@@ -1,8 +1,17 @@
 import React from 'react';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Package2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Tag from '../components/ui/Tag';
 import StatusDot from '../components/ui/StatusDot';
 import { MOCK_PRODUCTS } from '../mock/productMock';
+
+const PHASE_TAG_COLOR: Record<string, 'phase-concept' | 'phase-prototype' | 'phase-evt' | 'phase-dvt' | 'phase-mp'> = {
+  概念期: 'phase-concept',
+  原型期: 'phase-prototype',
+  EVT: 'phase-evt',
+  DVT: 'phase-dvt',
+  MP: 'phase-mp',
+};
 
 const ProductListPage: React.FC = () => {
   return (
@@ -21,10 +30,12 @@ const ProductListPage: React.FC = () => {
             <option>所有阶段</option>
             <option>原型期</option>
             <option>EVT</option>
+            <option>DVT</option>
+            <option>MP</option>
           </select>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-sm font-bold shadow-sm">
-          <Plus className="w-4 h-4" /> 新建立项
+          <Plus className="w-4 h-4" /> 新建产品
         </button>
       </div>
 
@@ -44,10 +55,29 @@ const ProductListPage: React.FC = () => {
             {MOCK_PRODUCTS.map((prod) => (
               <tr key={prod.id} className="hover:bg-slate-50/80 transition-colors">
                 <td className="px-6 py-4">
-                  <div className="font-bold text-slate-800 cursor-pointer hover:text-blue-600">
-                    {prod.name}
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-12 h-12 rounded-xl border border-slate-100 overflow-hidden bg-slate-50 flex-shrink-0">
+                      {prod.coverImage ? (
+                        <div
+                          className="absolute inset-0"
+                          style={{ backgroundImage: `url(${prod.coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-50 text-slate-400">
+                          <Package2 className="w-5 h-5" strokeWidth={1.6} />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <Link
+                        to={`/products/${prod.id}`}
+                        className="font-bold text-slate-800 cursor-pointer hover:text-blue-600 transition-colors"
+                      >
+                        {prod.name}
+                      </Link>
+                      <div className="text-xs text-slate-400 mt-0.5">{prod.id}</div>
+                    </div>
                   </div>
-                  <div className="text-xs text-slate-400 mt-0.5">{prod.id}</div>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
@@ -58,7 +88,7 @@ const ProductListPage: React.FC = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     {prod.depts.map((d) => (
                       <Tag key={d} color="slate">
                         {d}
@@ -67,15 +97,18 @@ const ProductListPage: React.FC = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <Tag color={prod.phase === 'MP' ? 'emerald' : 'blue'}>{prod.phase}</Tag>
+                  <Tag color={PHASE_TAG_COLOR[prod.phase] ?? 'phase-prototype'}>{prod.phase}</Tag>
                 </td>
                 <td className="px-6 py-4">
                   <StatusDot status={prod.health} />
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <span className="cursor-pointer px-3 py-1.5 rounded-md bg-blue-50 hover:bg-blue-100 text-sm font-medium text-blue-600">
-                    工作台
-                  </span>
+                  <Link
+                    to={`/products/${prod.id}`}
+                    className="inline-flex cursor-pointer px-3 py-1.5 rounded-md bg-blue-50 hover:bg-blue-100 text-sm font-medium text-blue-600 transition-colors"
+                  >
+                    查看详情
+                  </Link>
                 </td>
               </tr>
             ))}

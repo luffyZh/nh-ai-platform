@@ -6,6 +6,7 @@ import IdeaListPage from './pages/IdeaListPage';
 import IdeaWizardPage from './pages/IdeaWizardPage';
 import IdeaPrdPage from './pages/IdeaPrdPage';
 import ProductListPage from './pages/ProductListPage';
+import ProductDetailPage from './pages/ProductDetailPage';
 import WeeklyReportPage from './pages/WeeklyReportPage';
 import UserManagementPage from './pages/UserManagementPage';
 import DepartmentManagementPage from './pages/DepartmentManagementPage';
@@ -20,6 +21,7 @@ const App: React.FC = () => {
         <Route path="/ideas/:id/wizard" element={<IdeaWizardPage />} />
         <Route path="/ideas/:id/prd" element={<IdeaPrdPage />} />
         <Route path="/products" element={<ProductListPage />} />
+        <Route path="/products/:id" element={<ProductDetailPage />} />
         <Route path="/reports" element={<WeeklyReportPage />} />
         <Route path="/departments" element={<DepartmentManagementPage />} />
         <Route path="/users" element={<UserManagementPage />} />
