@@ -31,6 +31,7 @@ import {
   Paperclip,
   Check,
   FolderKanban,
+  X,
 } from 'lucide-react';
 import type { Product, AssetCategory, FeedTag, MemberRole, WeeklyReport, TeamMember } from '../mock/productMock';
 import { getProductById } from '../mock/productMock';
@@ -38,7 +39,7 @@ import CollapsibleModule from '../components/ui/CollapsibleModule';
 import Tag from '../components/ui/Tag';
 import StatusDot from '../components/ui/StatusDot';
 
-type TabKey = 'overview' | 'phase' | 'weekly' | 'team' | 'asset' | 'ai';
+type TabKey = 'overview' | 'phase' | 'weekly' | 'team' | 'asset';
 
 const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: 'overview', label: '概览', icon: <LayoutDashboard className="w-5 h-5" /> },
@@ -46,7 +47,6 @@ const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: 'weekly', label: '周报', icon: <CalendarCheck className="w-5 h-5" /> },
   { key: 'team', label: '团队', icon: <Users className="w-5 h-5" /> },
   { key: 'asset', label: '资产', icon: <Package2 className="w-5 h-5" /> },
-  { key: 'ai', label: 'AI助手', icon: <Bot className="w-5 h-5" /> },
 ];
 
 const PHASES: Product['phase'][] = ['概念期', '原型期', 'EVT', 'DVT', 'MP'];
@@ -1177,16 +1177,17 @@ interface ChatMessage {
   scene?: string;
 }
 
-const AIChatTab: React.FC<{ product: Product }> = ({ product }) => {
+const AIChatDrawer: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       role: 'ai',
-      content: `您好！我是 **${product.shortName ?? product.name}** 的 AI 助手。我已读取该产品的知识库（共 ${product.assets.length} 份资产 + ${product.reports.length} 份周报 + 团队动态）。\n\n您可以：\n- 从左侧选择场景模板，一键生成标准化材料\n- 或直接在下方输入任意需求，我会基于产品知识库为您定制输出`,
+      content: `您好！我是 **${product.shortName ?? product.name}** 的 AI 助手。我已读取该产品的知识库（共 ${product.assets.length} 份资产 + ${product.reports.length} 份周报 + 团队动态）。\n\n您可以：\n- 从上方选择场景模板，一键生成标准化材料\n- 或直接在下方输入任意需求，我会基于产品知识库为您定制输出`,
     },
   ]);
   const [input, setInput] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [scenesExpanded, setScenesExpanded] = useState(true);
 
   const handleSceneClick = (sceneName: string, promptTemplate: string): void => {
     const prompt = promptTemplate || `请基于【${product.shortName ?? product.name}】的产品知识库，生成一份【${sceneName}】材料。`;
@@ -1197,6 +1198,7 @@ const AIChatTab: React.FC<{ product: Product }> = ({ product }) => {
       scene: sceneName,
     };
     setMessages((prev) => [...prev, userMsg]);
+    setScenesExpanded(false);
     runGenerate(prompt, sceneName);
   };
 
@@ -1222,179 +1224,188 @@ const AIChatTab: React.FC<{ product: Product }> = ({ product }) => {
   };
 
   return (
-    <div className="h-full w-full grid grid-cols-1 lg:grid-cols-4 gap-4 overflow-hidden">
-      {/* 左侧场景 */}
-      <div className="lg:col-span-1 h-full bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
-        <div className="px-5 py-4 border-b border-slate-100 flex-shrink-0">
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">AI 材料生成</div>
-          <div className="text-sm font-black text-slate-800">场景模板库</div>
-        </div>
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
-          <div className="space-y-2">
-            {product.aiScenes.map((scene) => {
-              const isCustom = scene.id === 's6';
-              return (
-                <button
-                  key={scene.id}
-                  onClick={() => handleSceneClick(scene.name, scene.prompt)}
-                  className={`
-                    w-full text-left rounded-xl border p-4 transition-all group
-                    ${isCustom
-                      ? 'border-dashed border-slate-200 bg-slate-50/50 hover:bg-blue-50/50 hover:border-blue-300'
-                      : 'border-slate-100 bg-white hover:border-blue-200 hover:shadow-sm'
-                    }
-                  `}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`
-                        flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center
-                        ${isCustom ? 'bg-slate-100 text-slate-500' : 'bg-blue-50 text-blue-600'}
-                      `}
-                    >
-                      {isCustom ? <Sparkles className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-black text-slate-800 mb-0.5">{scene.name}</div>
-                      <div className="text-[11px] text-slate-500 leading-relaxed">{scene.description}</div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+    <div className="h-full w-full flex flex-col overflow-hidden">
+      {/* 顶部 Header */}
+      <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50/80 to-violet-50/50">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white shadow-sm">
+            <Bot className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-sm font-black text-slate-800 truncate">{product.shortName ?? product.name} · 知识库 AI</div>
+            <div className="text-[11px] text-slate-400">基于 {product.assets.length + product.reports.length} 份材料 · 仅供参考</div>
           </div>
         </div>
+        <button onClick={onClose} className="p-2 hover:bg-white/80 rounded-full transition-colors flex-shrink-0">
+          <X className="w-5 h-5 text-slate-500" />
+        </button>
+      </div>
 
-        <div className="px-4 py-3 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
-          <div className="text-[11px] font-bold text-slate-500 mb-1.5">知识库来源</div>
-          <div className="flex flex-wrap gap-1">
+      {/* 场景模板库（可折叠） */}
+      <div className="border-b border-slate-100 flex-shrink-0 bg-white">
+        <button
+          onClick={() => setScenesExpanded(!scenesExpanded)}
+          className="w-full px-4 py-2.5 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors"
+        >
+          <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
+            <Sparkles className="w-3.5 h-3.5 text-violet-500 flex-shrink-0" />
+            <span className="text-[10px] font-bold text-slate-700 whitespace-nowrap">场景模板库</span>
+            <span className="inline-flex items-center justify-center min-w-[1.25rem] px-1 h-4 rounded-md bg-slate-100 text-[9px] font-bold text-slate-500 flex-shrink-0">
+              {product.aiScenes.length}
+            </span>
+          </div>
+          {/* 知识库来源 Tag：放到标题右侧 */}
+          <div className="flex items-center gap-1 flex-1 justify-end min-w-0 flex-wrap mr-1">
             {[
               { label: '文档', count: product.assets.filter((a) => a.category === '文档').length },
               { label: '图片', count: product.assets.filter((a) => a.category === '图片').length },
               { label: '周报', count: product.reports.length },
               { label: '动态', count: product.feeds.length },
             ].map((s) => (
-              <span key={s.label} className="inline-flex items-center px-2 py-0.5 rounded-md bg-white text-[10px] font-bold text-slate-600 border border-slate-200">
-                {s.label} · {s.count}
+              <span key={s.label} className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-50 text-xs font-bold text-slate-500 border border-slate-200 flex-shrink-0">
+                {s.label}·{s.count}
               </span>
             ))}
           </div>
-        </div>
+          <ChevronRight
+            className={`w-4 h-4 text-slate-400 transition-transform duration-200 flex-shrink-0 ${scenesExpanded ? 'rotate-90' : ''}`}
+          />
+        </button>
+        {scenesExpanded && (
+          <div className="px-4 pb-3">
+            {/* 一行 2 个 × 2 行网格布局 */}
+            <div className="grid grid-cols-2 gap-2">
+              {product.aiScenes.slice(0, 4).map((scene) => {
+                const isCustom = scene.id === 's6';
+                return (
+                  <button
+                    key={scene.id}
+                    onClick={() => handleSceneClick(scene.name, scene.prompt)}
+                    className={`
+                      text-left rounded-lg border p-2.5 transition-all group
+                      ${isCustom
+                        ? 'border-dashed border-slate-200 bg-slate-50/50 hover:bg-blue-50/50 hover:border-blue-300'
+                        : 'border-slate-100 bg-white hover:border-blue-200 hover:shadow-sm'
+                      }
+                    `}
+                  >
+                    <div className="flex items-start gap-2">
+                      <div
+                        className={`
+                          flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center
+                          ${isCustom ? 'bg-slate-100 text-slate-500' : 'bg-blue-50 text-blue-600'}
+                        `}
+                      >
+                        {isCustom ? <Sparkles className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-black text-slate-800 mb-0.5 truncate">{scene.name}</div>
+                        <div className="text-[10px] text-slate-500 leading-snug line-clamp-2">{scene.description}</div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 右侧对话区：严格 h-full flex-col，中间消息区独立滚动，输入框永远底部可见 */}
-      <div className="lg:col-span-3 h-full bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white">
-              <Bot className="w-5 h-5" />
+      {/* 消息区 */}
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-slate-50/40">
+        {messages.map((m) => (
+          <div key={m.id} className={`flex items-start gap-2.5 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+            <div
+              className={`
+                flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center
+                ${m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gradient-to-br from-blue-100 to-violet-100 text-blue-600'}
+              `}
+            >
+              {m.role === 'user' ? <Users className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
             </div>
-            <div>
-              <div className="text-sm font-black text-slate-800">{product.shortName ?? product.name} · 知识库 AI</div>
-              <div className="text-[11px] text-slate-400">基于 {product.assets.length + product.reports.length} 份材料 · 回答仅供参考</div>
-            </div>
-          </div>
-          <button className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 flex items-center justify-center flex-shrink-0">
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* 消息区：独立 overflow-y-auto，不影响外部页面 */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-5 bg-slate-50/30">
-          {messages.map((m) => (
-            <div key={m.id} className={`flex items-start gap-3 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+            <div className={`max-w-[82%] ${m.role === 'user' ? 'items-end' : ''}`}>
+              {m.scene && (
+                <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold mb-1 border ${
+                  m.role === 'user'
+                    ? 'bg-blue-50 text-blue-600 border-blue-200 ml-auto'
+                    : 'bg-violet-50 text-violet-600 border-violet-200'
+                }`}>
+                  <Sparkles className="w-3 h-3" />
+                  场景：{m.scene}
+                </div>
+              )}
               <div
                 className={`
-                  flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center
-                  ${m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gradient-to-br from-blue-100 to-violet-100 text-blue-600'}
+                  rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap
+                  ${m.role === 'user'
+                    ? 'bg-blue-600 text-white rounded-tr-sm'
+                    : 'bg-white text-slate-700 border border-slate-100 rounded-tl-sm shadow-sm'
+                  }
                 `}
               >
-                {m.role === 'user' ? <Users className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                {m.content}
               </div>
-              <div className={`max-w-[75%] ${m.role === 'user' ? 'items-end' : ''}`}>
-                {m.scene && (
-                  <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold mb-1.5 border ${
-                    m.role === 'user'
-                      ? 'bg-blue-50 text-blue-600 border-blue-200 ml-auto'
-                      : 'bg-violet-50 text-violet-600 border-violet-200'
-                  }`}>
-                    <Sparkles className="w-3 h-3" />
-                    场景：{m.scene}
-                  </div>
-                )}
-                <div
-                  className={`
-                    rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap
-                    ${m.role === 'user'
-                      ? 'bg-blue-600 text-white rounded-tr-sm'
-                      : 'bg-white text-slate-700 border border-slate-100 rounded-tl-sm shadow-sm'
-                    }
-                  `}
-                >
-                  {m.content}
+              {m.role === 'ai' && (
+                <div className="flex items-center gap-1 mt-1.5">
+                  <button className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white hover:bg-slate-50 text-[10px] font-bold text-slate-500 border border-slate-200">
+                    <Copy className="w-3 h-3" /> 复制
+                  </button>
+                  <button className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white hover:bg-slate-50 text-[10px] font-bold text-slate-500 border border-slate-200">
+                    <RefreshCw className="w-3 h-3" /> 重生成
+                  </button>
+                  <button className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-[10px] font-bold text-blue-600 border border-blue-200">
+                    <Save className="w-3 h-3" /> 存资产库
+                  </button>
                 </div>
-                {m.role === 'ai' && (
-                  <div className="flex items-center gap-1 mt-2">
-                    <button className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-500 border border-slate-200">
-                      <Copy className="w-3 h-3" /> 复制
-                    </button>
-                    <button className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-500 border border-slate-200">
-                      <RefreshCw className="w-3 h-3" /> 重新生成
-                    </button>
-                    <button className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-[11px] font-bold text-blue-600 border border-blue-200">
-                      <Save className="w-3 h-3" /> 存入资产库
-                    </button>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
-          ))}
-          {generating && (
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br from-blue-100 to-violet-100 text-blue-600 flex items-center justify-center">
-                <Bot className="w-4 h-4" />
-              </div>
-              <div className="rounded-2xl rounded-tl-sm bg-white border border-slate-100 shadow-sm px-4 py-3">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '300ms' }} />
-                  <span className="text-xs text-slate-400 ml-2">AI 正在基于知识库生成材料...</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 输入区：flex-shrink-0，永远贴在底部、可见 */}
-        <div className="px-5 py-4 border-t border-slate-100 bg-white flex-shrink-0">
-          <div className="flex items-end gap-2">
-            <button className="h-11 w-11 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 flex items-center justify-center flex-shrink-0">
-              <Paperclip className="w-5 h-5" />
-            </button>
-            <div className="flex-1 relative">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                rows={2}
-                placeholder="输入您的需求... (Enter 发送 / Shift+Enter 换行)"
-                className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 pr-12 text-sm outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <button
-              onClick={handleSend}
-              disabled={!input.trim() || generating}
-              className="h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold shadow-sm flex items-center gap-2 flex-shrink-0"
-            >
-              <Send className="w-4 h-4" /> 发送
-            </button>
           </div>
+        ))}
+        {generating && (
+          <div className="flex items-start gap-2.5">
+            <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-violet-100 text-blue-600 flex items-center justify-center">
+              <Bot className="w-3.5 h-3.5" />
+            </div>
+            <div className="rounded-2xl rounded-tl-sm bg-white border border-slate-100 shadow-sm px-3.5 py-2.5">
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="text-[11px] text-slate-400 ml-1.5">AI 生成中...</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 输入区 */}
+      <div className="px-4 py-3 border-t border-slate-100 bg-white flex-shrink-0">
+        <div className="flex items-end gap-2">
+          <button className="h-10 w-10 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 flex items-center justify-center flex-shrink-0">
+            <Paperclip className="w-4 h-4" />
+          </button>
+          <div className="flex-1 relative">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              rows={2}
+              placeholder="输入需求... (Enter 发送 / Shift+Enter 换行)"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 pr-10 text-sm outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <button
+            onClick={handleSend}
+            disabled={!input.trim() || generating}
+            className="h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold shadow-sm flex items-center gap-1.5 flex-shrink-0"
+          >
+            <Send className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </div>
@@ -1509,6 +1520,7 @@ const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const product = id ? getProductById(id) : undefined;
   const [tab, setTab] = useState<TabKey>('overview');
+  const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
 
   // 顶部图片轮播
   const carouselImages = useMemo<string[]>(() => {
@@ -1554,231 +1566,238 @@ const ProductDetailPage: React.FC = () => {
     .filter((x): x is NonNullable<typeof x> => !!x);
 
   return (
-    <div className="p-6 space-y-6 animate-in fade-in duration-500">
-      {/* ============= 顶部产品卡（纯白背景 + 左轮播 右信息） ============= */}
-      <div className="relative bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="p-6 flex gap-6 items-stretch">
-          {/* 左：图片轮播 4:3 */}
-          <div className="w-[42%] max-w-[400px] flex-shrink-0">
-            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border border-slate-100 bg-slate-50">
-              {carouselImages.length > 0 ? (
-                <>
-                  <div
-                    className="absolute inset-0 transition-all duration-500"
-                    style={{
-                      backgroundImage: `url(${carouselImages[carouselIdx]})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                    }}
-                  />
-                  {carouselImages.length > 1 && (
+    <div className="h-full flex w-full overflow-hidden animate-in fade-in duration-500">
+      {/* ========== 左侧：产品详情主内容区（打开 AI 时自动变窄） ========== */}
+      <div
+        className={`flex-1 min-w-0 overflow-y-auto transition-all duration-300 ${
+          aiDrawerOpen ? 'pr-0' : ''
+        }`}
+      >
+        <div className="p-6 space-y-6">
+          {/* ============= 顶部产品卡（纯白背景 + 左轮播 右信息） ============= */}
+          <div className="relative bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-6 flex gap-6 items-stretch flex-col lg:flex-row">
+              {/* 左：图片轮播 4:3 */}
+              <div className="w-full lg:w-[42%] max-w-[400px] lg:flex-shrink-0 mx-auto lg:mx-0">
+                <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border border-slate-100 bg-slate-50">
+                  {carouselImages.length > 0 ? (
                     <>
-                      <button
-                        onClick={() =>
-                          setCarouselIdx((i) => (i - 1 + carouselImages.length) % carouselImages.length)
-                        }
-                        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-600 shadow-sm border border-slate-200 flex items-center justify-center transition-all"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setCarouselIdx((i) => (i + 1) % carouselImages.length)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-600 shadow-sm border border-slate-200 flex items-center justify-center transition-all"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-                        {carouselImages.map((_, i) => (
+                      <div
+                        className="absolute inset-0 transition-all duration-500"
+                        style={{
+                          backgroundImage: `url(${carouselImages[carouselIdx]})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                        }}
+                      />
+                      {carouselImages.length > 1 && (
+                        <>
                           <button
-                            key={i}
-                            onClick={() => setCarouselIdx(i)}
-                            className={`w-1.5 h-1.5 rounded-full transition-all ${
-                              i === carouselIdx ? 'w-5 bg-white shadow-sm' : 'bg-white/70'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <div className="absolute right-3 bottom-3 px-2 py-0.5 rounded-md bg-black/40 text-white text-[11px] font-bold">
-                        {carouselIdx + 1} / {carouselImages.length}
-                      </div>
+                            onClick={() =>
+                              setCarouselIdx((i) => (i - 1 + carouselImages.length) % carouselImages.length)
+                            }
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-600 shadow-sm border border-slate-200 flex items-center justify-center transition-all"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setCarouselIdx((i) => (i + 1) % carouselImages.length)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-600 shadow-sm border border-slate-200 flex items-center justify-center transition-all"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                            {carouselImages.map((_, i) => (
+                              <button
+                                key={i}
+                                onClick={() => setCarouselIdx(i)}
+                                className={`w-1.5 h-1.5 rounded-full transition-all ${
+                                  i === carouselIdx ? 'w-5 bg-white shadow-sm' : 'bg-white/70'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <div className="absolute right-3 bottom-3 px-2 py-0.5 rounded-md bg-black/40 text-white text-[11px] font-bold">
+                            {carouselIdx + 1} / {carouselImages.length}
+                          </div>
+                        </>
+                      )}
                     </>
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 gap-2">
+                      <Package2 className="w-14 h-14" strokeWidth={1.3} />
+                      <span className="text-xs font-bold text-slate-500">暂无产品图片</span>
+                    </div>
                   )}
-                </>
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 gap-2">
-                  <Package2 className="w-14 h-14" strokeWidth={1.3} />
-                  <span className="text-xs font-bold text-slate-500">暂无产品图片</span>
                 </div>
-              )}
+              </div>
+
+              {/* 右：信息区 */}
+              <div className="flex-1 min-w-0 flex flex-col relative">
+                {/* 右上角 Action 横排 */}
+                <div className="flex justify-between flex-col sm:flex-row gap-3 sm:gap-0">
+                  {/* 返回链接 */}
+                  <div className="mt-3">
+                    <Link
+                      to="/products"
+                      className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 font-bold transition-colors"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" /> 返回产品大盘
+                    </Link>
+                  </div>
+                  <div className="flex items-center justify-end gap-2 flex-shrink-0 flex-wrap">
+                    <button className="h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 flex items-center justify-center border border-slate-200 transition-colors" title="下载资料包">
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button className="h-9 inline-flex items-center gap-1.5 px-4 rounded-xl bg-white hover:bg-slate-50 text-sm font-bold text-slate-700 border border-slate-200 shadow-sm transition-colors">
+                      <Edit className="w-4 h-4" /> 编辑信息
+                    </button>
+                    <button
+                      onClick={() => setAiDrawerOpen(!aiDrawerOpen)}
+                      className={`h-9 inline-flex items-center gap-1.5 px-4 rounded-xl text-sm font-bold shadow-sm transition-colors ${
+                        aiDrawerOpen
+                          ? 'bg-slate-800 hover:bg-slate-900 text-white'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      }`}
+                    >
+                      <Sparkles className="w-4 h-4" /> {aiDrawerOpen ? '关闭 AI 助手' : 'AI 生成材料'}
+                    </button>
+                  </div>
+                </div>
+                {/* 产品主标题 + 状态 */}
+                <div className="mt-2 flex items-center gap-3 flex-wrap">
+                  <h1 className="text-2xl lg:text-[28px] font-black text-slate-800 leading-tight">
+                    {product.name}
+                  </h1>
+                  <Tag color={PHASE_TAG_COLOR[product.phase] ?? 'phase-prototype'}>{product.phase}</Tag>
+                  <span className="inline-flex items-center mt-1">
+                    <StatusDot status={product.health} />
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span className="inline-flex items-center px-2.5 py-0 rounded-md bg-slate-50 text-[11px] font-bold text-slate-600 border border-slate-200">
+                    编号 {product.id}
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-0 rounded-md bg-slate-50 text-[11px] font-bold text-slate-600 border border-slate-200">
+                    <Calendar className="w-3 h-3 mr-1" />
+                    立项 {product.date}
+                  </span>
+                </div>
+
+                {/* 一句话描述 */}
+                <p className="mt-2 text-sm text-slate-600 leading-relaxed max-w-4xl">
+                  {product.oneLiner}
+                </p>
+
+                {/* 三核心角色卡 */}
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {coreMembers.map(({ key, title, member, accent, ring }) => (
+                    <div
+                      key={key}
+                      className={`relative p-3 rounded-xl border border-slate-100 bg-slate-50/40 overflow-hidden`}
+                    >
+                      <div className={`absolute -right-3 -top-3 w-14 h-14 rounded-full bg-gradient-to-br ${accent} opacity-10`} />
+                      <div className="relative flex items-center gap-3">
+                        <div
+                          className={`flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-base font-black ${
+                            AVATAR_BG[member.avatarColor] ?? 'bg-slate-100 text-slate-600'
+                          } ring-4 ${ring}`}
+                        >
+                          {member.name[0]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-0.5">{title}</div>
+                          <div className="text-sm font-black text-slate-800 truncate">{member.name}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 参战部门 Tag */}
+                <div className="mt-4 flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-bold text-slate-500">参战部门</span>
+                  {product.depts.map((d) => (
+                    <Tag key={d} color="slate">{d}</Tag>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* 右：信息区 */}
-          <div className="flex-1 min-w-0 flex flex-col relative">
-            {/* 右上角 Action 横排 */}
-            <div className='flex justify-between'>
-              {/* 返回链接 */}
-              <div className="mt-3">
-                <Link
-                  to="/products"
-                  className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 font-bold transition-colors"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" /> 返回产品大盘
-                </Link>
-              </div>
-              <div className="flex items-center justify-end gap-2 flex-shrink-0">
-                <button className="h-9 w-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 flex items-center justify-center border border-slate-200 transition-colors" title="下载资料包">
-                  <Download className="w-4 h-4" />
-                </button>
-                <button className="h-9 inline-flex items-center gap-1.5 px-4 rounded-xl bg-white hover:bg-slate-50 text-sm font-bold text-slate-700 border border-slate-200 shadow-sm transition-colors">
-                  <Edit className="w-4 h-4" /> 编辑信息
-                </button>
-                <button className="h-9 inline-flex items-center gap-1.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-sm transition-colors">
-                  <Sparkles className="w-4 h-4" /> AI 生成材料
-                </button>
-              </div>
-            </div>
-            {/* 产品主标题 + 状态 */}
-            <div className="mt-2 flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl lg:text-[28px] font-black text-slate-800 leading-tight">
-                {product.name}
-              </h1>
-              <Tag color={PHASE_TAG_COLOR[product.phase] ?? 'phase-prototype'}>{product.phase}</Tag>
-              <span className="inline-flex items-center mt-1">
-                <StatusDot status={product.health} />
-              </span>
-            </div>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <span className="inline-flex items-center px-2.5 py-0 rounded-md bg-slate-50 text-[11px] font-bold text-slate-600 border border-slate-200">
-                编号 {product.id}
-              </span>
-              <span className="inline-flex items-center px-2.5 py-0 rounded-md bg-slate-50 text-[11px] font-bold text-slate-600 border border-slate-200">
-                <Calendar className="w-3 h-3 mr-1" />
-                立项 {product.date}
-              </span>
-            </div>
-
-            {/* 一句话描述 */}
-            <p className="mt-2 text-sm text-slate-600 leading-relaxed max-w-4xl">
-              {product.oneLiner}
-            </p>
-
-            {/* 三核心角色卡 */}
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-              {coreMembers.map(({ key, title, member, accent, ring }) => (
-                <div
-                  key={key}
-                  className={`relative p-3 rounded-xl border border-slate-100 bg-slate-50/40 overflow-hidden`}
-                >
-                  <div className={`absolute -right-3 -top-3 w-14 h-14 rounded-full bg-gradient-to-br ${accent} opacity-10`} />
-                  <div className="relative flex items-center gap-3">
+          {/* ============= 左侧 Tabs + 右侧内容 ============= */}
+          <div className="flex gap-6 flex-col lg:flex-row items-stretch">
+            {/* 左侧 Tabs */}
+            <div className="w-full lg:w-56 flex-shrink-0 bg-white rounded-2xl shadow-sm border border-slate-100 p-3 lg:sticky lg:top-6 self-start">
+              <div className="space-y-1">
+                {TABS.map((t) => (
+                  <button
+                    key={t.key}
+                    onClick={() => setTab(t.key)}
+                    className={`
+                      w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all
+                      ${tab === t.key
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-50'
+                      }
+                    `}
+                  >
                     <div
-                      className={`flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-base font-black ${
-                        AVATAR_BG[member.avatarColor] ?? 'bg-slate-100 text-slate-600'
-                      } ring-4 ${ring}`}
+                      className={`
+                        w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors
+                        ${tab === t.key ? 'bg-white/15' : 'bg-slate-100'}
+                      `}
                     >
-                      {member.name[0]}
+                      {t.icon}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-0.5">{title}</div>
-                      <div className="text-sm font-black text-slate-800 truncate">{member.name}</div>
-                      {/* <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-500">
-                        {member.phone && (
-                          <span className="inline-flex items-center gap-1">
-                            <Phone className="w-3 h-3" /> {member.phone}
-                          </span>
-                        )}
-                        {member.email && (
-                          <span className="inline-flex items-center gap-1 truncate">
-                            <Mail className="w-3 h-3 flex-shrink-0" />
-                            <span className="truncate">{member.email}</span>
-                          </span>
-                        )}
-                      </div> */}
+                    <div>
+                      <div className="text-sm font-black">{t.label}</div>
                     </div>
-                  </div>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-slate-100 space-y-2 px-2">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">核心数字</div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500">团队人数</span>
+                  <b className="text-slate-800 tabular-nums">{product.team.length}</b>
                 </div>
-              ))}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500">资产文件</span>
+                  <b className="text-slate-800 tabular-nums">{product.assets.length}</b>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500">动态数量</span>
+                  <b className="text-slate-800 tabular-nums">{product.feeds.length}</b>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500">周报请阅读</span>
+                  <b className="text-slate-800 tabular-nums">{product.reports.length}</b>
+                </div>
+              </div>
             </div>
 
-            {/* 参战部门 Tag */}
-            <div className="mt-4 flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-bold text-slate-500">参战部门</span>
-              {product.depts.map((d) => (
-                <Tag key={d} color="slate">{d}</Tag>
-              ))}
+            {/* 右侧内容：Tab 自适应 */}
+            <div className="flex-1 min-w-0 w-full flex flex-col">
+              {tab === 'overview' && <OverviewTab product={product} />}
+              {tab === 'phase' && <PhaseTab product={product} />}
+              {tab === 'weekly' && <WeeklyTab product={product} />}
+              {tab === 'team' && <TeamTab product={product} />}
+              {tab === 'asset' && <AssetTab product={product} />}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ============= 左侧 Tabs + 右侧内容（撑满屏幕，供 AI Tab 内部做 h-full 约束） ============= */}
-      <div className="flex gap-6 flex-col lg:flex-row items-stretch">
-        {/* 左侧 Tabs */}
-        <div className="w-full lg:w-56 flex-shrink-0 bg-white rounded-2xl shadow-sm border border-slate-100 p-3 lg:sticky lg:top-6 self-start">
-          <div className="space-y-1">
-            {TABS.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={`
-                  w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all
-                  ${tab === t.key
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-50'
-                  }
-                `}
-              >
-                <div
-                  className={`
-                    w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors
-                    ${tab === t.key ? 'bg-white/15' : 'bg-slate-100'}
-                  `}
-                >
-                  {t.icon}
-                </div>
-                <div>
-                  <div className="text-sm font-black">{t.label}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-          <div className="mt-4 pt-4 border-t border-slate-100 space-y-2 px-2">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">核心数字</div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500">团队人数</span>
-              <b className="text-slate-800 tabular-nums">{product.team.length}</b>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500">资产文件</span>
-              <b className="text-slate-800 tabular-nums">{product.assets.length}</b>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500">动态数量</span>
-              <b className="text-slate-800 tabular-nums">{product.feeds.length}</b>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500">周报请阅读</span>
-              <b className="text-slate-800 tabular-nums">{product.reports.length}</b>
-            </div>
-          </div>
-        </div>
-
-        {/* 右侧内容：AI Tab 时固定精确高度 + overflow-hidden，禁止页面级滚动；其他 Tab 自适应 */}
-        <div
-          className={`flex-1 min-w-0 w-full flex flex-col ${
-            tab === 'ai'
-              ? 'lg:h-[calc(100vh-180px)] h-[640px] lg:max-h-[calc(100vh-180px)] max-h-[640px] overflow-hidden'
-              : ''
-          }`}
-        >
-          {tab === 'overview' && <OverviewTab product={product} />}
-          {tab === 'phase' && <PhaseTab product={product} />}
-          {tab === 'weekly' && <WeeklyTab product={product} />}
-          {tab === 'team' && <TeamTab product={product} />}
-          {tab === 'asset' && <AssetTab product={product} />}
-          {tab === 'ai' && <AIChatTab product={product} />}
-        </div>
+      {/* ========== 右侧：AI 助手面板（固定宽度 480px，撑满屏幕高度，从右侧滑入） ========== */}
+      <div
+        className={`flex-shrink-0 h-full border-l border-slate-200 bg-white overflow-hidden transition-all duration-300 ease-out ${
+          aiDrawerOpen ? 'w-[520px] translate-x-0 opacity-100' : 'w-0 translate-x-8 opacity-0 pointer-events-none'
+        }`}
+      >
+        {product && aiDrawerOpen && (
+          <AIChatDrawer product={product} onClose={() => setAiDrawerOpen(false)} />
+        )}
       </div>
     </div>
   );
