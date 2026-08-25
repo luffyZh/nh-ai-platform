@@ -51,7 +51,7 @@ const Sidebar: React.FC = () => {
     <div className="w-64 bg-white border-r border-slate-200 flex flex-col z-10">
       <div className="h-16 flex items-center px-6 border-b border-slate-100">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3">
-          <img src="/favicon.svg" alt="NHY AI-PLM" className="w-6 h-6" />
+          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="NHY AI-PLM" className="w-6 h-6" />
         </div>
         <span className="font-bold text-slate-800 text-lg tracking-tight">类脑资源管理平台</span>
       </div>
