@@ -8,6 +8,7 @@ import IdeaPrdPage from './pages/IdeaPrdPage';
 import ProductListPage from './pages/ProductListPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import WeeklyReportPage from './pages/WeeklyReportPage';
+import WeeklyReportEditPage from './pages/WeeklyReportEditPage';
 import UserManagementPage from './pages/UserManagementPage';
 import DepartmentManagementPage from './pages/DepartmentManagementPage';
 import PermissionManagementPage from './pages/PermissionManagementPage';
@@ -23,6 +24,7 @@ const App: React.FC = () => {
         <Route path="/products" element={<ProductListPage />} />
         <Route path="/products/:id" element={<ProductDetailPage />} />
         <Route path="/reports" element={<WeeklyReportPage />} />
+        <Route path="/reports/:id/edit" element={<WeeklyReportEditPage />} />
         <Route path="/departments" element={<DepartmentManagementPage />} />
         <Route path="/users" element={<UserManagementPage />} />
         <Route path="/permissions" element={<PermissionManagementPage />} />

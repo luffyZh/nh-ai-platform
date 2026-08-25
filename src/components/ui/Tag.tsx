@@ -17,9 +17,12 @@ type TagColor =
   | 'phase-dvt'
   | 'phase-mp';
 
+type TagSize = 'sm' | 'md';
+
 interface TagProps {
   children: React.ReactNode;
   color?: TagColor;
+  size?: TagSize;
 }
 
 const colorMap: Record<TagColor, string> = {
@@ -40,9 +43,14 @@ const colorMap: Record<TagColor, string> = {
   'phase-mp': 'bg-emerald-50 text-emerald-700 border-emerald-300',
 };
 
-const Tag: React.FC<TagProps> = ({ children, color = 'blue' }) => {
+const sizeMap: Record<TagSize, string> = {
+  sm: 'px-2 py-0.5 rounded-md text-[11px] font-bold',
+  md: 'px-2.5 py-1 rounded-md text-xs font-bold',
+};
+
+const Tag: React.FC<TagProps> = ({ children, color = 'blue', size = 'md' }) => {
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border ${colorMap[color]}`}>
+    <span className={`inline-flex items-center border ${colorMap[color]} ${sizeMap[size]}`}>
       {children}
     </span>
   );

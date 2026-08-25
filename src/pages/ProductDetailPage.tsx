@@ -34,7 +34,7 @@ import {
   X,
 } from 'lucide-react';
 import type { Product, AssetCategory, FeedTag, MemberRole, WeeklyReport, TeamMember } from '../mock/productMock';
-import { getProductById } from '../mock/productMock';
+import { useProductStore } from '../store/productStore';
 import CollapsibleModule from '../components/ui/CollapsibleModule';
 import Tag from '../components/ui/Tag';
 import StatusDot from '../components/ui/StatusDot';
@@ -1518,6 +1518,7 @@ const buildDemoContent = (product: Product, scene?: string): string => {
 const ProductDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { getProductById } = useProductStore();
   const product = id ? getProductById(id) : undefined;
   const [tab, setTab] = useState<TabKey>('overview');
   const [aiDrawerOpen, setAiDrawerOpen] = useState(false);

@@ -1,43 +1,115 @@
-import React, { useState } from 'react';
-import { Search } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Plus, FileEdit, Eye } from 'lucide-react';
 import Tag from '../components/ui/Tag';
 import StatusDot from '../components/ui/StatusDot';
-import Drawer from '../components/ui/Drawer';
-import { MOCK_REPORTS } from '../mock/reportMock';
-import type { WeeklyReport } from '../mock/reportMock';
+import { useReportStore } from '../store/reportStore';
+import type { ReportStatus } from '../types/report';
+
+const STATUS_TABS: (ReportStatus | '全部')[] = ['全部', '草稿', '待确认', '已发送'];
+
+const STATUS_COLOR: Record<ReportStatus, 'slate' | 'amber' | 'emerald'> = {
+  草稿: 'slate',
+  待确认: 'amber',
+  已发送: 'emerald',
+};
 
 const WeeklyReportPage: React.FC = () => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [currentReport, setCurrentReport] = useState<WeeklyReport | null>(null);
+  const navigate = useNavigate();
+  const reports = useReportStore((s) => s.reports);
+  const initDraft = useReportStore((s) => s.initDraft);
 
-  const handleView = (report: WeeklyReport) => {
-    setCurrentReport(report);
-    setDrawerOpen(true);
+  const [activeTab, setActiveTab] = useState<ReportStatus | '全部'>('全部');
+  const [keyword, setKeyword] = useState('');
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { 全部: reports.length };
+    (['草稿', '待确认', '已发送'] as ReportStatus[]).forEach((st) => {
+      c[st] = reports.filter((r) => r.status === st).length;
+    });
+    return c;
+  }, [reports]);
+
+  const filtered = useMemo(() => {
+    return reports.filter((r) => {
+      if (activeTab !== '全部' && r.status !== activeTab) return false;
+      if (keyword) {
+        const k = keyword.toLowerCase();
+        const inTitle = r.title.toLowerCase().includes(k);
+        const inAuthor = r.author.toLowerCase().includes(k);
+        const inProduct = r.items.some((it) => it.productName.toLowerCase().includes(k));
+        if (!inTitle && !inAuthor && !inProduct) return false;
+      }
+      return true;
+    });
+  }, [reports, activeTab, keyword]);
+
+  const handleNew = () => {
+    const id = initDraft();
+    navigate(`/reports/${id}/edit`);
   };
+
+  const handleView = (id: string) => navigate(`/reports/${id}/edit`);
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="搜索周报标题"
-              className="w-64 h-9 rounded-xl border border-slate-200 pl-9 pr-4 bg-slate-50 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="搜索周报标题 / 汇报人 / 关联项目名"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              className="w-80 h-9 rounded-xl border border-slate-200 pl-9 pr-4 bg-slate-50 text-sm outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
           <select className="h-9 rounded-xl border border-slate-200 px-3 bg-slate-50 text-sm text-slate-600 outline-none">
             <option>所有部门</option>
             <option>软件中心</option>
             <option>硬件一部</option>
+            <option>算法二部</option>
           </select>
           <select className="h-9 rounded-xl border border-slate-200 px-3 bg-slate-50 text-sm text-slate-600 outline-none">
             <option>所有人员</option>
+            <option>吴经理</option>
             <option>张伟</option>
             <option>李娜</option>
+            <option>王强</option>
           </select>
         </div>
+
+        <button
+          onClick={handleNew}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-sm text-white text-sm font-bold transition-all"
+        >
+          <Plus className="w-4 h-4" />
+          新建周报
+        </button>
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        {STATUS_TABS.map((t) => (
+          <button
+            key={t}
+            onClick={() => setActiveTab(t)}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeTab === t
+                ? 'bg-white shadow-sm border border-slate-200 text-slate-900'
+                : 'text-slate-500 hover:bg-white/60 border border-transparent'
+            }`}
+          >
+            {t}
+            <span
+              className={`ml-1.5 inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full text-xs ${
+                activeTab === t ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-600'
+              }`}
+            >
+              {counts[t] ?? 0}
+            </span>
+          </button>
+        ))}
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -45,85 +117,88 @@ const WeeklyReportPage: React.FC = () => {
           <thead>
             <tr className="bg-slate-50/80 border-b border-slate-100 text-xs text-slate-500 uppercase tracking-wider">
               <th className="px-6 py-4 font-semibold">周报标题</th>
-              <th className="px-6 py-4 font-semibold">关联产品</th>
+              <th className="px-6 py-4 font-semibold">关联项目</th>
               <th className="px-6 py-4 font-semibold">汇报人</th>
               <th className="px-6 py-4 font-semibold">所属部门</th>
+              <th className="px-6 py-4 font-semibold">周期</th>
+              <th className="px-6 py-4 font-semibold">条目</th>
               <th className="px-6 py-4 font-semibold">状态</th>
-              <th className="px-6 py-4 font-semibold">生成时间</th>
+              <th className="px-6 py-4 font-semibold">更新时间</th>
               <th className="px-6 py-4 font-semibold text-right">操作</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
-            {MOCK_REPORTS.map((report) => (
-              <tr key={report.id} className="hover:bg-slate-50/80 transition-colors">
-                <td className="px-6 py-4 font-bold text-slate-800">{report.title}</td>
-                <td className="px-6 py-4 text-slate-600">{report.product}</td>
-                <td className="px-6 py-4 text-slate-600">{report.author}</td>
-                <td className="px-6 py-4">
-                  <Tag color="slate">{report.dept}</Tag>
-                </td>
-                <td className="px-6 py-4">
-                  <StatusDot status={report.status} />
-                </td>
-                <td className="px-6 py-4 text-slate-500">{report.date}</td>
-                <td className="px-6 py-4 text-right">
-                  <span
-                    onClick={() => handleView(report)}
-                    className="cursor-pointer px-3 py-1.5 rounded-md bg-blue-50 hover:bg-blue-100 text-sm font-medium text-blue-600"
-                  >
-                    查看
-                  </span>
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="px-6 py-20 text-center text-slate-400">
+                  暂无周报，点右上角「新建周报」开始
                 </td>
               </tr>
-            ))}
+            ) : (
+              filtered.map((report) => {
+                const productSet = Array.from(new Set(report.items.map((it) => it.productName)));
+                return (
+                  <tr key={report.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="px-6 py-4 font-bold text-slate-800">{report.title}</td>
+                    <td className="px-6 py-4 max-w-xs">
+                      {productSet.length === 0 ? (
+                        <span className="text-slate-400">—</span>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {productSet.slice(0, 3).map((p) => (
+                            <Tag key={p} color="slate">
+                              {p}
+                            </Tag>
+                          ))}
+                          {productSet.length > 3 && (
+                            <Tag color="slate">+{productSet.length - 3}</Tag>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-slate-600">{report.author}</td>
+                    <td className="px-6 py-4">
+                      <Tag color="slate">{report.dept}</Tag>
+                    </td>
+                    <td className="px-6 py-4 text-slate-500 text-xs">{report.weekLabel.replace(/第\s*/, '第').split('(')[0]}</td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-xs font-bold">
+                        {report.items.length} 条
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <StatusDot status={report.status} />
+                        <Tag color={STATUS_COLOR[report.status]}>{report.status}</Tag>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-slate-500">{report.updatedAt}</td>
+                    <td className="px-6 py-4 text-right space-x-2">
+                      {report.status === '草稿' ? (
+                        <button
+                          onClick={() => handleView(report.id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-sm font-medium text-indigo-600"
+                        >
+                          <FileEdit className="w-3.5 h-3.5" />
+                          继续编辑
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleView(report.id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-blue-50 hover:bg-blue-100 text-sm font-medium text-blue-600"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          查看
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
-
-      <Drawer
-        isOpen={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        title="周报详情 (Markdown 预览)"
-      >
-        {currentReport && (
-          <div className="space-y-6 text-slate-700">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 mb-2">{currentReport.title}</h1>
-              <div className="flex gap-4 text-sm text-slate-500 border-b border-slate-200 pb-4">
-                <span>汇报人：{currentReport.author}</span>
-                <span>部门：{currentReport.dept}</span>
-                <span>日期：{currentReport.date}</span>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold text-slate-800 border-l-4 border-blue-500 pl-3">
-                一、 本周核心进展
-              </h2>
-              <ul className="list-disc list-inside space-y-2 pl-2 text-sm">
-                <li>完成 {currentReport.product} 的核心架构设计评审。</li>
-                <li>与硬件部门对齐了 BOM 成本，当前偏差率控制在 5% 以内。</li>
-                <li>输出 PRD v2.0，已提交内部知识库。</li>
-              </ul>
-
-              <h2 className="text-lg font-bold text-slate-800 border-l-4 border-amber-500 pl-3 mt-6">
-                二、 存在的风险与问题
-              </h2>
-              <p className="text-sm pl-2 bg-amber-50 p-3 rounded-lg text-amber-800">
-                ⚠️ 供应商 A 的芯片交期可能延误 1 周，需要 PMO 协助协调备用供应商资源。
-              </p>
-
-              <h2 className="text-lg font-bold text-slate-800 border-l-4 border-emerald-500 pl-3 mt-6">
-                三、 下周计划
-              </h2>
-              <ul className="list-decimal list-inside space-y-2 pl-2 text-sm">
-                <li>发起 EVT 阶段第一次打样。</li>
-                <li>完成软件底层驱动的联调测试。</li>
-              </ul>
-            </div>
-          </div>
-        )}
-      </Drawer>
     </div>
   );
 };

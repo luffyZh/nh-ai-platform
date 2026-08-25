@@ -4,7 +4,16 @@ export type WizardStepKey =
   | 'painPoints'
   | 'coreFeatures';
 
-export type IdeaStatus = '草稿' | '已提交' | '孵化中' | '已立项' | '已驳回';
+export type IdeaStatus = '草稿' | '评审中' | '孵化中' | '未通过';
+
+export interface ReviewComment {
+  id: string;
+  reviewer: string;
+  role: string;
+  content: string;
+  createdAt: string;
+  result: '通过' | '未通过' | '待评审';
+}
 
 export interface Idea {
   id: string;
@@ -20,6 +29,10 @@ export interface Idea {
   painPoints: string;
   coreFeatures: string;
   prdContent: string;
+  rejectReason?: string;
+  productId?: string;
+  assignedPm?: string;
+  reviewComments?: ReviewComment[];
 }
 
 export interface ChatMessage {

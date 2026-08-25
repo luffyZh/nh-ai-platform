@@ -16,6 +16,8 @@ export const INITIAL_IDEAS: Idea[] = [
     coreFeatures:
       '1) 双 IR 红外摄像头，夜间识别率 ≥ 98%  2) 本地 NPU 端侧推理，延迟 < 300ms  3) 面部特征匿名化，不上传原图',
     prdContent: '',
+    productId: 'P-2026005',
+    assignedPm: '张伟',
   },
   {
     id: 'ID-20260805-002',
@@ -23,7 +25,7 @@ export const INITIAL_IDEAS: Idea[] = [
     summary: '输入硬件方案，自动比价历史 BOM + 推荐替代料，预计降本 8%',
     author: '李娜',
     dept: '硬件二部',
-    status: '已提交',
+    status: '评审中',
     aiScore: 81,
     createdAt: '2026-08-05',
     positioning: '硬件 PM 专属的 BOM 智能降本助手，对接历史项目 BOM 和采购报价库',
@@ -31,6 +33,32 @@ export const INITIAL_IDEAS: Idea[] = [
     painPoints: '1) 新项目查历史 BOM 报价靠人肉翻 Excel；2) 替代料推荐靠老工程师经验，新人上手慢；3) 芯片涨价时无法快速感知成本冲击',
     coreFeatures: '1) BOM 相似度检索（Top-5 历史项目） 2) 替代料智能推荐 + 风险等级 3) 料号涨价实时预警',
     prdContent: '',
+    reviewComments: [
+      {
+        id: 'r-seed-1',
+        reviewer: '系统',
+        role: '流程',
+        content: '提案已提交评审委员会，由硬件/算法/软件三部共 3 位评委联合审阅，AI 辅助评分 81/100。',
+        createdAt: '2026/8/22 09:00:00',
+        result: '待评审',
+      },
+      {
+        id: 'r-seed-2',
+        reviewer: '周德友',
+        role: '硬件二部 · 评委',
+        content: '定位清晰，历史 BOM 复用 + 国产替代两个痛点都真实。建议 MVP 阶段先覆盖阻容/芯片两大高价值品类。',
+        createdAt: '2026/8/23 14:30:00',
+        result: '通过',
+      },
+      {
+        id: 'r-seed-3',
+        reviewer: '王强',
+        role: '软件中心 · 评委',
+        content: '对接 BOM Excel 上传 + 相似度检索技术方案可行。注意采购报价数据脱敏合规问题。',
+        createdAt: '2026/8/24 10:15:00',
+        result: '通过',
+      },
+    ],
   },
   {
     id: 'ID-20260810-003',
@@ -38,7 +66,7 @@ export const INITIAL_IDEAS: Idea[] = [
     summary: '抓取飞书/Jira/GitLab 动态，周五 16:00 自动出结构化周报草稿',
     author: '王强',
     dept: '软件中心',
-    status: '已提交',
+    status: '孵化中',
     aiScore: 76,
     createdAt: '2026-08-10',
     positioning: '面向研发团队的周报自动生成机器人',
@@ -61,6 +89,43 @@ export const INITIAL_IDEAS: Idea[] = [
     painPoints: '',
     coreFeatures: '',
     prdContent: '',
+    reviewComments: [],
+  },
+  {
+    id: 'ID-20260720-005',
+    title: '智能会议室预定与资源调度系统',
+    summary: '语音/企业微信一键预定，自动检测冲突并推荐替代方案，联动门禁投屏',
+    author: '刘洋',
+    dept: '行政部',
+    status: '未通过',
+    aiScore: 62,
+    createdAt: '2026-07-20',
+    positioning: '面向全院行政与研发团队的智能会议室资源调度系统',
+    targetUsers: '行政人员、各部门助理、一线研发工程师',
+    painPoints: '1) 会议室抢不到，经常临时换地点；2) 投屏/白板每次都要折腾半天；3) 预定后没人用，资源浪费严重',
+    coreFeatures: '1) 企微语音一键预定  2) 冲突自动检测 + 智能推荐  3) 无人使用 15min 自动释放',
+    prdContent: '',
+    rejectReason:
+      '评审委员会意见：\n1. 该场景属于通用企业服务领域，与我院"硬件 + AI 算法"核心战略方向关联度较低，优先级靠后；\n2. 院内已有企微会议室预定功能，重复建设 ROI 不高；\n3. 建议：可考虑作为软件中心内部 Hackathon 项目先跑通 MVP，验证后再正式立项。',
+    reviewComments: [
+      {
+        id: 'r-seed-rej-1',
+        reviewer: '系统',
+        role: '流程',
+        content: '提案由行政部刘洋于 2026/7/20 发起评审，AI 评分 62 分。',
+        createdAt: '2026/7/20 10:00:00',
+        result: '待评审',
+      },
+      {
+        id: 'r-seed-rej-2',
+        reviewer: '评审委员会',
+        role: '评委结论',
+        content:
+          '1. 与我院"硬件+AI算法"战略关联度低；2. 已有企微预定功能，重复建设；3. 建议内部 Hackathon 验证。',
+        createdAt: '2026/7/21 16:00:00',
+        result: '未通过',
+      },
+    ],
   },
 ];
 
