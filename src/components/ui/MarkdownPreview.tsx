@@ -38,7 +38,7 @@ function renderInline(text: string): string {
   return t;
 }
 
-export function renderMarkdown(src: string): { html: string; headings: { id: string; text: string; level: number }[] } {
+function renderMarkdown(src: string): { html: string; headings: { id: string; text: string; level: number }[] } {
   if (!src.trim()) {
     return {
       html: `<div class="text-slate-400 text-center py-16"><p>暂无 PRD 内容</p><p class="text-xs mt-2">请完成 4 步向导后点击「生成 PRD 初稿」</p></div>`,

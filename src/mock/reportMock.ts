@@ -1,5 +1,4 @@
 import type { WeeklyReport, ReportItem, ReportItemCategory } from '../types/report';
-import type { ChatMessage } from '../types/idea';
 
 const now = Date.now();
 const DAY = 86400000;
@@ -40,12 +39,11 @@ export function buildMarkdownFromReport(report: Pick<WeeklyReport, 'title' | 'au
   const lines: string[] = [];
   lines.push(`# ${report.title}`);
   lines.push('');
-  lines.push(`> 汇报人：**${report.author}**　｜　部门：**${report.dept}**　｜　周期：**${report.weekLabel}**`);
+  lines.push(`> 汇报人：**${report.author}** | 部门：**${report.dept}** | 周期：**${report.weekLabel}**`);
   lines.push('');
 
   const groups: Record<ReportItemCategory, ReportItem[]> = { 核心进展: [], 风险问题: [], 下周计划: [] };
   report.items.forEach((it) => groups[it.category].push(it));
-  const borderColor: Record<ReportItemCategory, string> = { 核心进展: 'border-blue-500', 风险问题: 'border-amber-500', 下周计划: 'border-emerald-500' };
 
   (Object.keys(groups) as ReportItemCategory[]).forEach((cat, idx) => {
     lines.push(`## ${idx + 1}、${cat}`);
@@ -126,7 +124,7 @@ export function generateReportItems(linkedProducts: ReturnType<typeof BUILD_MY_L
   return items;
 }
 
-export function generateReplyForReport(userText: string, currentMarkdown: string): { reply: string; patch?: Partial<Pick<WeeklyReport, 'markdownContent'>> } {
+export function generateReplyForReport(userText: string): { reply: string; patch?: Partial<Pick<WeeklyReport, 'markdownContent'>> } {
   const has精 = userText.includes('精简') || userText.includes('500');
   const has扩 = userText.includes('详细版') || userText.includes('扩展');
   const has量 = userText.includes('量化') || userText.includes('数据');

@@ -70,7 +70,7 @@ const IdeaWizardPage: React.FC = () => {
     if (existed) {
       loadIdea(id);
       clearAiAsk();
-      setOverallFired(false);
+      queueMicrotask(() => setOverallFired(false));
     } else {
       const newId = initDraft();
       navigate(`/ideas/${newId}/wizard`, { replace: true });

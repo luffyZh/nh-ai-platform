@@ -9,7 +9,6 @@ import {
   Wand2,
   X,
   CheckCircle2,
-  AlertTriangle,
   CalendarDays,
   User,
   Briefcase,
@@ -55,13 +54,16 @@ const WeeklyReportEditPage: React.FC = () => {
     addItem,
     removeItem,
     pushChat,
-    saveReport,
     submitReport,
   } = useReportStore();
 
   const [toast, setToast] = useState<string | null>(null);
   const [autoSaveText, setAutoSaveText] = useState<string>('');
-  const [editMarkdown, setEditMarkdown] = useState<string>('');
+  const [editMarkdown, setEditMarkdown] = useState<string>(() => {
+    const initial = useReportStore.getState();
+    const initReport = initial.reports.find((r) => r.id === id);
+    return initReport?.markdownContent || '';
+  });
   const [genLoading, setGenLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [chatInput, setChatInput] = useState('');
@@ -84,13 +86,13 @@ const WeeklyReportEditPage: React.FC = () => {
       return;
     }
     loadReport(id);
-    setEditMarkdown(existed.markdownContent);
+    queueMicrotask(() => setEditMarkdown(existed.markdownContent));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
-    if (current) setEditMarkdown(current.markdownContent);
-  }, [current?.id, current?.items.length]);
+    if (current) queueMicrotask(() => setEditMarkdown(current.markdownContent));
+  }, [current]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -138,7 +140,7 @@ const WeeklyReportEditPage: React.FC = () => {
     pushChat(userMsg);
     setAiLoading(true);
     setTimeout(() => {
-      const { reply } = generateReplyForReport(text, current.markdownContent);
+      const { reply } = generateReplyForReport(text);
       const assistant: ChatMessage = {
         id: uid(),
         role: 'assistant',

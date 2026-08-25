@@ -79,7 +79,11 @@ const IdeaPrdPage: React.FC = () => {
   const [submitOpen, setSubmitOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
-  const [editDraft, setEditDraft] = useState('');
+  const [editDraft, setEditDraft] = useState(() => {
+    const initial = useIdeaStore.getState();
+    const initIdea = initial.ideas.find((i) => i.id === id);
+    return initIdea?.prdContent || '';
+  });
 
   const [passOpen, setPassOpen] = useState(false);
   const [passComment, setPassComment] = useState('');
@@ -107,15 +111,15 @@ const IdeaPrdPage: React.FC = () => {
         coreFeatures: existed.coreFeatures,
       });
       setPrdContent(content);
-      setEditDraft(content);
+      queueMicrotask(() => setEditDraft(content));
     } else {
-      setEditDraft(existed.prdContent);
+      queueMicrotask(() => setEditDraft(existed.prdContent));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
-    if (prdContent) setEditDraft(prdContent);
+    if (prdContent) queueMicrotask(() => setEditDraft(prdContent));
   }, [prdContent]);
 
   useEffect(() => {

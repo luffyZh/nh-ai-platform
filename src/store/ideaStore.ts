@@ -138,10 +138,9 @@ export const useIdeaStore = create<IdeaStore>()(
           wizardForm.positioning.trim().slice(0, 20) ||
           patch?.title ||
           '未命名创意';
+        const summaryBase = `${wizardForm.targetUsers.trim().slice(0, 30)} · ${wizardForm.painPoints.trim().slice(0, 30)}`;
         const summary =
-          `${wizardForm.targetUsers.trim().slice(0, 30)} · ${wizardForm.painPoints.trim().slice(0, 30)}` ||
-          patch?.summary ||
-          '（尚未填写关键信息）';
+          summaryBase.length > 3 ? summaryBase : patch?.summary || '（尚未填写关键信息）';
         set({
           ideas: ideas.map((i) =>
             i.id === currentIdeaId
@@ -227,7 +226,7 @@ export const useIdeaStore = create<IdeaStore>()(
         };
 
         let productId: string | undefined;
-        let assignedPm = assignPm && assignPm !== '暂不分配，后续在列表认领' ? assignPm : undefined;
+        const assignedPm = assignPm && assignPm !== '暂不分配，后续在列表认领' ? assignPm : undefined;
 
         let newIdeas = ideas.map((i) =>
           i.id === currentIdeaId

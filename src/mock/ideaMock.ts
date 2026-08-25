@@ -297,8 +297,8 @@ export function generateChatReply(userMessage: string, currentPrd: string): {
     return prd.replace(re, `${prefix}\n\n${newBody}\n\n`);
   };
 
-  let reply = '好的，已为你调整 PRD 内容，请查看左侧预览 ✅';
-  let updated = currentPrd;
+  let reply: string;
+  let updated: string;
 
   if (/竞品|竞争|对比/.test(msg)) {
     updated = replaceSection(
