@@ -104,7 +104,7 @@ export interface Product {
   aiScenes: AISceneTemplate[];
 }
 
-const GUARDX_IMG_BASE = '/src/assets/products/guardx';
+const GUARDX_IMG_BASE = `${import.meta.env.BASE_URL}assets/products/guardx`;
 
 export const MOCK_PRODUCTS: Product[] = [
   {
