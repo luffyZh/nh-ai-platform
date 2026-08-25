@@ -33,13 +33,27 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: pnpm
+          node-version: 22
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Enable corepack & prepare pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9 --activate
+          pnpm --version
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
         with:
-          version: 9
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -48,6 +62,8 @@ jobs:
         run: |
           echo "Repository: ${{ github.event.repository.name }}"
           echo "Base path: $BASE_PATH"
+          echo "Node: $(node --version)"
+          echo "pnpm: $(pnpm --version)"
 
       - name: Type check
         run: pnpm tsc -b
