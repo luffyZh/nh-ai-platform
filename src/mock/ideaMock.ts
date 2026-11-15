@@ -167,7 +167,7 @@ export function generatePrdContent(form: {
   const { title, positioning, targetUsers, painPoints, coreFeatures } = form;
   return `# ${title || '产品需求文档（PRD 初稿）'}
 
-> 版本：V0.1 AI 生成稿  ｜  生成时间：${new Date().toLocaleString('zh-CN')}  ｜  来源：NHY AI 创智平台
+> 版本：V0.1 AI 生成稿  ｜  生成时间：${new Date().toLocaleString('zh-CN')}  ｜  来源：创擎 InnoTorque
 
 ---
 
@@ -223,7 +223,7 @@ ${
 | 方案 | 优点 | 缺点 | 我们的差异化 |
 | --- | --- | --- | --- |
 | 人肉 Excel / 线下流程 | 灵活、零开发 | 易遗漏、口径不一、汇总耗时 | AI 结构化 + 自动提醒 + 全局看板 |
-| 市面上通用 PLM 工具 | 功能全面 | 重定制、难落地、不贴合 NHY 流程 | 深度贴合院内硬件 EVT/DVT 门径 |
+| 市面上通用 PLM 工具 | 功能全面 | 重定制、难落地、不贴合院内流程 | 深度贴合院内硬件 EVT/DVT 门径 |
 | 自研旧系统 | 定制深 | 维护成本高、无 AI 能力 | 新一代 AI 原生架构 |
 
 ---

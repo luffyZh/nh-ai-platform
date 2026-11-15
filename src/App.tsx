@@ -11,6 +11,7 @@ import WeeklyReportPage from './pages/WeeklyReportPage';
 import WeeklyReportEditPage from './pages/WeeklyReportEditPage';
 import UserManagementPage from './pages/UserManagementPage';
 import DepartmentManagementPage from './pages/DepartmentManagementPage';
+import DepartmentMetricsPage from './pages/DepartmentMetricsPage';
 import PermissionManagementPage from './pages/PermissionManagementPage';
 
 const App: React.FC = () => {
@@ -26,6 +27,7 @@ const App: React.FC = () => {
         <Route path="/reports" element={<WeeklyReportPage />} />
         <Route path="/reports/:id/edit" element={<WeeklyReportEditPage />} />
         <Route path="/departments" element={<DepartmentManagementPage />} />
+        <Route path="/dept-metrics" element={<DepartmentMetricsPage />} />
         <Route path="/users" element={<UserManagementPage />} />
         <Route path="/permissions" element={<PermissionManagementPage />} />
       </Route>

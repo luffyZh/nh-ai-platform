@@ -7,6 +7,7 @@ const pathNameMap: Record<string, string> = {
   '/products': '产品大盘',
   '/reports': '周报管理',
   '/departments': '部门管理',
+  '/dept-metrics': '部门效能大盘',
   '/users': '人员管理',
   '/permissions': '权限管理',
 };

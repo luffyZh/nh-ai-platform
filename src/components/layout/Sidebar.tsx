@@ -6,6 +6,7 @@ import {
   FolderKanban,
   BookOpen,
   Building2,
+  Activity,
   Users,
   Shield,
 } from 'lucide-react';
@@ -37,9 +38,15 @@ const menuGroups: MenuGroup[] = [
     ],
   },
   {
+    title: '部门效能',
+    items: [
+      { label: '部门效能大盘', path: '/dept-metrics', icon: <Activity className="w-5 h-5" /> },
+      { label: '部门管理', path: '/departments', icon: <Building2 className="w-5 h-5" /> },
+    ],
+  },
+  {
     title: '系统管理',
     items: [
-      { label: '部门管理', path: '/departments', icon: <Building2 className="w-5 h-5" /> },
       { label: '人员管理', path: '/users', icon: <Users className="w-5 h-5" /> },
       { label: '权限管理', path: '/permissions', icon: <Shield className="w-5 h-5" /> },
     ],
@@ -51,9 +58,10 @@ const Sidebar: React.FC = () => {
     <div className="w-64 bg-white border-r border-slate-200 flex flex-col z-10">
       <div className="h-16 flex items-center px-6 border-b border-slate-100">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3">
-          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="NHY AI-PLM" className="w-6 h-6" />
+          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="创擎 InnoTorque" className="w-6 h-6" />
         </div>
-        <span className="font-bold text-slate-800 text-lg tracking-tight">类脑资源管理平台</span>
+        <span className="font-bold text-slate-800 text-lg tracking-tight">创擎</span>
+        <span className="text-[10px] font-bold text-slate-400 ml-1.5 pt-1">InnoTorque</span>
       </div>
 
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">

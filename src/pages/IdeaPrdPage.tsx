@@ -623,7 +623,7 @@ const IdeaPrdPage: React.FC = () => {
               value={passComment}
               onChange={(e) => setPassComment(e.target.value)}
               rows={4}
-              placeholder="示例：\n1. 战略方向高度一致，符合 NHY 硬件+AI 核心打法\n2. ROI 评估通过，预计 8 个月回本\n3. MVP 阶段请先落地 1-2 个种子部门做试点"
+              placeholder="示例：\n1. 战略方向高度一致，符合院内硬件+AI 核心打法\n2. ROI 评估通过，预计 8 个月回本\n3. MVP 阶段请先落地 1-2 个种子部门做试点"
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-700 outline-none focus:ring-2 focus:ring-emerald-100 focus:border-emerald-400 resize-none"
             />
           </div>

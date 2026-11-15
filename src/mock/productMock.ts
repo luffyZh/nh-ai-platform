@@ -356,7 +356,7 @@ export const MOCK_PRODUCTS: Product[] = [
   },
   {
     id: 'P-2026001',
-    name: 'NHY 智能座舱语音助手 V2.0',
+    name: '智能座舱语音助手 V2.0',
     shortName: '座舱语音助手',
     oneLiner: '多轮对话 + 场景化语音指令的智能座舱语音交互方案，覆盖导航/音乐/车控/闲聊四大领域，支持离线可用。',
     pm: '张伟',

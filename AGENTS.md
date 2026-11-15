@@ -1,15 +1,16 @@
 # AGENTS.md
 
 ## 1. Project Overview (项目基础信息)
-- **项目名称**：NHY AI 创智平台 - 前端演示版 (Frontend Demo)
+- **项目名称**：创擎（InnoTorque）· 创新全生命周期平台 - 前端演示版 (Frontend Demo)
+- **对外定位**：面向矩阵式研发组织的 AI 创新孵化与效能度量中台（详见 `docs/参赛方案-F01数智创意赛道.md`）
 - **项目用途**：用于内部高层汇报与交互演示的高保真前端原型。
 - **核心约束**：当前为纯前端 Demo，**没有后端接口**。所有页面数据必须使用高质量的 Mock 数据（假数据）进行渲染，确保演示时的视觉丰满度和交互连贯性。
 
 ## 2. Tech Stack & Standards (技术栈与代码规范)
-- **核心框架**：React 18 + TypeScript 5.x + Vite 5.x
-- **UI & 样式**：Tailwind CSS 3.x + Shadcn UI + Lucide React (图标)
-- **图表库**：Recharts (用于渲染部门效能大盘的雷达图、柱状图等)
-- **状态与路由**：Zustand (用于跨页面状态共享，如“新建创意”后在列表中展示) + React Router v6
+- **核心框架**：React 19 + TypeScript 6.x + Vite 8.x
+- **UI & 样式**：Tailwind CSS 4.x（`@tailwindcss/vite` 插件，无 `tailwind.config.js`）+ 自研 `src/components/ui/` 组件 + Lucide React (图标)
+- **图表库**：Recharts 3.x (用于渲染部门效能大盘的雷达图、柱状图等)
+- **状态与路由**：Zustand 5.x (用于跨页面状态共享，如“新建创意”后在列表中展示) + React Router v6
 - **包管理器**：`pnpm` (严禁使用 npm 或 yarn)
 - **规范**：强制使用 React 函数式组件 (Functional Components)；禁止使用 `any` 类型。
 
@@ -33,6 +34,6 @@
 
 ## 6. Working Agreements & Red Lines (协作约定与绝对红线)
 - **沟通语言**：默认使用**中文（简体）**进行代码注释和文档输出。
-- 🚫 **红线 1：禁止擅自引入 UI 库**。除了 Shadcn UI、Tailwind 和 Recharts，禁止擅自引入 Ant Design、MUI、Element 等其他组件库，以保证 UI 风格绝对统一。
+- 🚫 **红线 1：禁止擅自引入 UI 库**。除 Tailwind CSS、Recharts 与现有 `src/components/ui/` 自研组件外，禁止擅自引入 Ant Design、MUI、Element、Shadcn 等其他组件库，以保证 UI 风格绝对统一。
 - 🚫 **红线 2：禁止修改基础配置**。绝对不允许修改 `vite.config.ts`、`tailwind.config.js` 等核心配置文件，除非用户明确要求。
 - 🚫 **红线 3：页面不能白屏**。在编写复杂组件时，必须做好异常容错处理（如数据为空时的 Empty State 展示），确保在任何点击交互下 Demo 都不会崩溃。
